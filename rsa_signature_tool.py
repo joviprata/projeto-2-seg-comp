@@ -68,3 +68,28 @@ def gerar_chaves_rsa(bits=1024):
         return gerar_chaves_rsa(bits)
     d = inverso_modular(e, phi)
     return {'public': (n, e), 'private': (n, d)}
+
+# OAEP
+
+def oaep_cifrar(message: bytes, k: int) -> int:
+    m_hash = hashlib.sha3_256(b'').digest()
+    ps = b'\x00' * (k - len(message) - 2 * len(m_hash) - 2)
+    db = m_hash + ps + b'\x01' + message
+    seed = os.urandom(len(m_hash))
+    db_mask = hashlib.sha3_256(seed).digest() + hashlib.sha3_256(seed[::-1]).digest()
+    masked_db = bytes(x ^ y for x, y in zip(db, db_mask))
+    seed_mask = hashlib.sha3_256(masked_db).digest()
+    masked_seed = bytes(x ^ y for x, y in zip(seed, seed_mask))
+    return bytes_para_int(b'\x00' + masked_seed + masked_db)
+
+def oaep_decifrar(em: int, k: int) -> bytes:
+    em_bytes = int_para_bytes(em, k)
+    h_len = hashlib.sha3_256(b'').digest_size
+    masked_seed = em_bytes[1:1 + h_len]
+    masked_db = em_bytes[1 + h_len:]
+    seed_mask = hashlib.sha3_256(masked_db).digest()
+    seed = bytes(x ^ y for x, y in zip(masked_seed, seed_mask))
+    db_mask = hashlib.sha3_256(seed).digest() + hashlib.sha3_256(seed[::-1]).digest()
+    db = bytes(x ^ y for x, y in zip(masked_db, db_mask))
+    i = db.find(b'\x01', h_len)
+    return db[i+1:]
