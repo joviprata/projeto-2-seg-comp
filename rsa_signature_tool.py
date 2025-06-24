@@ -116,3 +116,37 @@ def verificar_assinatura(data: bytes, signature_b64: str, public_key: tuple) -> 
         return hash_real == hash_da_assinatura
     except Exception:
         return False
+
+# Utilitários para arquivos
+
+def salvar_arquivo_assinado(filepath: str, data: bytes, signature_b64: str):
+    with open(filepath, 'wb') as f:
+        f.write(b"-----BEGIN MESSAGE-----\n")
+        f.write(base64.b64encode(data) + b"\n")
+        f.write(b"-----END MESSAGE-----\n")
+        f.write(b"-----BEGIN SIGNATURE-----\n")
+        f.write(signature_b64.encode() + b"\n")
+        f.write(b"-----END SIGNATURE-----\n")
+
+def carregar_arquivo_assinado(filepath: str) -> tuple:
+    with open(filepath, 'rb') as f:
+        lines = f.read().split(b"\n")
+        msg_b64 = b""
+        assinatura_b64 = ""
+        lendo_msg = lendo_assinatura = False
+        for line in lines:
+            if line == b"-----BEGIN MESSAGE-----":
+                lendo_msg = True
+                continue
+            elif line == b"-----END MESSAGE-----":
+                lendo_msg = False
+            elif line == b"-----BEGIN SIGNATURE-----":
+                lendo_assinatura = True
+                continue
+            elif line == b"-----END SIGNATURE-----":
+                lendo_assinatura = False
+            elif lendo_msg:
+                msg_b64 += line
+            elif lendo_assinatura:
+                assinatura_b64 += line.decode()
+        return base64.b64decode(msg_b64), assinatura_b64
