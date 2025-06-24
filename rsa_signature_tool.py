@@ -24,7 +24,7 @@ def inverso_modular(a, m):
         a, m = m, a % m
         x0, x1 = x1 - q * x0, x0
     return x1 + m0 if x1 < 0 else x1
-    
+
 # Geração de Chaves e Cifração
 
 def miller_rabin(n, k=40):
