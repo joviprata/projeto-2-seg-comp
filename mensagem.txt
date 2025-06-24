@@ -1,0 +1,2 @@
+Este é um exemplo de mensagem que será assinada digitalmente usando o algoritmo RSA com OAEP.
+A integridade e a autenticidade desta mensagem podem ser verificadas com a chave pública correspondente.
