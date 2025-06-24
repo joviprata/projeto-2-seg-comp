@@ -93,3 +93,26 @@ def oaep_decifrar(em: int, k: int) -> bytes:
     db = bytes(x ^ y for x, y in zip(masked_db, db_mask))
     i = db.find(b'\x01', h_len)
     return db[i+1:]
+
+# Assinatura
+
+def sha3_hash(data: bytes) -> bytes:
+    return hashlib.sha3_256(data).digest()
+
+def assinar_mensagem(data: bytes, private_key: tuple) -> str:
+    n, d = private_key
+    digest = sha3_hash(data)
+    assinatura_int = pow(bytes_para_int(digest), d, n)
+    return base64.b64encode(int_para_bytes(assinatura_int)).decode()
+
+# Verificação
+
+def verificar_assinatura(data: bytes, signature_b64: str, public_key: tuple) -> bool:
+    n, e = public_key
+    try:
+        assinatura_int = bytes_para_int(base64.b64decode(signature_b64))
+        hash_da_assinatura = int_para_bytes(pow(assinatura_int, e, n))
+        hash_real = sha3_hash(data)
+        return hash_real == hash_da_assinatura
+    except Exception:
+        return False
