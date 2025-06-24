@@ -150,3 +150,23 @@ def carregar_arquivo_assinado(filepath: str) -> tuple:
             elif lendo_assinatura:
                 assinatura_b64 += line.decode()
         return base64.b64decode(msg_b64), assinatura_b64
+
+# Exemplo de uso
+
+if __name__ == "__main__":
+    # Gerar chaves
+    print("Gerando chaves RSA de 1024 bits (isso pode demorar alguns segundos)...")
+    chaves = gerar_chaves_rsa(1024)
+    pub, priv = chaves['public'], chaves['private']
+
+    # Assinar
+    with open("mensagem.txt", "rb") as f:
+        msg = f.read()
+
+    assinatura = assinar_mensagem(msg, priv)
+    salvar_arquivo_assinado("mensagem_assinada.txt", msg, assinatura)
+
+    # Verificar
+    msg_verif, assinatura_verif = carregar_arquivo_assinado("mensagem_assinada.txt")
+    valido = verificar_assinatura(msg_verif, assinatura_verif, pub)
+    print("Assinatura válida?", valido)
